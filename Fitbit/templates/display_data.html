@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Data</title>
+</head>
+<body>
+    <h1>Health Data</h1>
+    
+    <!-- Heart Rate Data Section -->
+    <h2>Heart Rate Data</h2>
+    <ul>
+        {% if heart_rate_data %}
+            <li>Resting Heart Rate: {{ heart_rate_data.restingHeartRate }}  bpm</li>
+            <h3>Heart Rate Zones</h3>
+            <ul>
+                {% for zone in heart_rate_data[0].heartRateZones %}
+                    <li>Zone: {{ zone.name }}, Min: {{ zone.min }} bpm, Max: {{ zone.max }} bpm, Minutes: {{ zone.minutes }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <li>No heart rate data available</li>
+        {% endif %}
+    </ul>
+
+    <!-- Real-Time Heart Rate Section -->
+    <h2>Real-Time Heart Rate</h2>
+    <ul>
+        {% if real_time_data %}
+            {% for entry in real_time_data %}
+                <li>Time: {{ entry.time }} min, Heart Rate: {{ entry.value }} bpm</li>
+            {% endfor %}
+        {% else %}
+            <li>No real-time heart rate data available</li>
+        {% endif %}
+    </ul>
+
+    <!-- Steps Data Section -->
+    <h2>Steps Data</h2>
+    <ul>
+        {% if steps_data %}
+            {% for entry in steps_data %}
+                <li>Date: {{ entry.dateTime }}, Steps: {{ entry.value }}</li>
+            {% endfor %}
+        {% else %}
+            <li>No steps data available</li>
+        {% endif %}
+    </ul>
+
+</body>
+</html>
