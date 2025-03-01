@@ -2,6 +2,7 @@ import requests
 from flask import Flask, request, redirect, render_template
 import base64
 from fitbitmetrics import display_heart_rate_data, display_steps_data, display_real_time_heart_rate_data
+from pcmetrics import get_pc_metrics
 
 # 🔹 Fitbit App credentials
 CLIENT_ID = "23Q3T7"
@@ -92,6 +93,9 @@ def callback():
 
     if 'activities-steps' not in steps_data:
         return f"Error fetching steps data: {steps_data}"
+    
+    # Get PC metrics
+    pc_metrics = get_pc_metrics()
 
     #Call the displaying function from fitbitmetrics.py to render the data
     return render_template(
@@ -99,7 +103,8 @@ def callback():
         resting_heart_rate=fitbit_data['activities-heart'][0]['value'].get('restingHeartRate', None),
         heart_rate_zones=fitbit_data['activities-heart'][0]['value'].get('heartRateZones', []),
         real_time_data=real_time_data.get('activities-heart-intraday', {}).get('dataset', []),
-        steps_data=steps_data['activities-steps']
+        steps_data=steps_data['activities-steps'],
+        pc_metrics=pc_metrics
     )
 if __name__ == "__main__":
     app.run(port=5001, debug=True,  use_reloader=True)
