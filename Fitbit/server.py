@@ -1,7 +1,7 @@
 import requests
 from flask import Flask, request, redirect, render_template
 import base64
-from fitbitmetrics import display_data
+from fitbitmetrics import display_heart_rate_data, display_steps_data, display_real_time_heart_rate_data
 
 # 🔹 Fitbit App credentials
 CLIENT_ID = "23Q3T7"
@@ -12,9 +12,9 @@ REDIRECT_URI = "http://localhost:5001/callback"  # Flask will handle this
 # 🔹 Fitbit API URLs
 AUTH_URL = "https://www.fitbit.com/oauth2/authorize"
 TOKEN_URL = "https://api.fitbit.com/oauth2/token"
-HEART_RATE_URL = "https://api.fitbit.com/1/user/-/activities/heart/date/today/1d.json"  # Example metric
+HEART_RATE_URL = "https://api.fitbit.com/1/user/-/activities/heart/date/today/1d.json"  
 STEPS_URL = "https://api.fitbit.com/1/user/-/activities/steps/date/today/1d.json"  
-REAL_TIME_HEART_RATE_URL = "https://api.fitbit.com/1/user/-/activities/heart/date/today/1d/1min.json"  # For real-time heart rate data
+REAL_TIME_HEART_RATE_URL = "https://api.fitbit.com/1/user/-/activities/heart/date/today/1d/1min.json"  
 
 
 app = Flask(__name__)
@@ -55,7 +55,7 @@ def callback():
     }
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     
-    # Create the Authorization header
+    # Create the Authorisation header
     auth_string = f"{CLIENT_ID}:{CLIENT_SECRET}"
     auth_base64 = base64.b64encode(auth_string.encode()).decode("utf-8")
     headers["Authorization"] = f"Basic {auth_base64}"
@@ -84,7 +84,7 @@ def callback():
     real_time_response = requests.get(REAL_TIME_HEART_RATE_URL, headers=headers)
     real_time_data = real_time_response.json()
     print("Real-Time Heart Rate Data:", real_time_data)
-    
+
     # Fetch steps data
     steps_response = requests.get(STEPS_URL, headers=headers)
     print("Steps API response:", steps_response.text)
@@ -93,13 +93,13 @@ def callback():
     if 'activities-steps' not in steps_data:
         return f"Error fetching steps data: {steps_data}"
 
-    # Step 3: Call the display function from fitbitmetrics.py to render the data
+    #Call the displaying function from fitbitmetrics.py to render the data
     return render_template(
         'display_data.html',
-        heart_rate_data=fitbit_data['activities-heart'], 
-        steps_data=steps_data['activities-steps'],
-        real_time_data=real_time_data.get('activities-heart-intraday', {}).get('dataset', [])
+        resting_heart_rate=fitbit_data['activities-heart'][0]['value'].get('restingHeartRate', None),
+        heart_rate_zones=fitbit_data['activities-heart'][0]['value'].get('heartRateZones', []),
+        real_time_data=real_time_data.get('activities-heart-intraday', {}).get('dataset', []),
+        steps_data=steps_data['activities-steps']
     )
-
 if __name__ == "__main__":
     app.run(port=5001, debug=True,  use_reloader=True)

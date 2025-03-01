@@ -8,35 +8,41 @@
 <body>
     <h1>Health Data</h1>
     
-    <!-- Heart Rate Data Section -->
+    <!-- Heart Rate Data -->
     <h2>Heart Rate Data</h2>
     <ul>
-        {% if heart_rate_data %}
-            <li>Resting Heart Rate: {{ heart_rate_data.restingHeartRate }}  bpm</li>
-            <h3>Heart Rate Zones</h3>
-            <ul>
-                {% for zone in heart_rate_data[0].heartRateZones %}
-                    <li>Zone: {{ zone.name }}, Min: {{ zone.min }} bpm, Max: {{ zone.max }} bpm, Minutes: {{ zone.minutes }}</li>
-                {% endfor %}
-            </ul>
+        {% if resting_heart_rate is not none %}
+            <li>Resting Heart Rate: {{ resting_heart_rate }} bpm</li>
         {% else %}
-            <li>No heart rate data available</li>
+            <li>Resting Heart Rate: No data available</li>
         {% endif %}
     </ul>
 
-    <!-- Real-Time Heart Rate Section -->
+    <!-- Heart Rate Zones -->
+    <h2>Heart Rate Zones</h2>
+    <ul>
+        {% if heart_rate_zones %}
+            {% for zone in heart_rate_zones %}
+                <li>{{ zone.name }}: {{ zone.minutes }} minutes ({{ zone.min }} - {{ zone.max }} bpm)</li>
+            {% endfor %}
+        {% else %}
+            <li>No heart rate zone data available</li>
+        {% endif %}
+    </ul>
+
+    <!-- Real-Time Heart Rate -->
     <h2>Real-Time Heart Rate</h2>
     <ul>
         {% if real_time_data %}
             {% for entry in real_time_data %}
-                <li>Time: {{ entry.time }} min, Heart Rate: {{ entry.value }} bpm</li>
+                <li>Time: {{ entry.time }}, Heart Rate: {{ entry.value }} bpm</li>
             {% endfor %}
         {% else %}
             <li>No real-time heart rate data available</li>
         {% endif %}
     </ul>
 
-    <!-- Steps Data Section -->
+    <!-- Steps Data -->
     <h2>Steps Data</h2>
     <ul>
         {% if steps_data %}
