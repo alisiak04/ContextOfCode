@@ -3,6 +3,7 @@ from flask import Flask, request, redirect, render_template
 import base64
 from fitbitmetrics import display_heart_rate_data, display_steps_data, display_real_time_heart_rate_data
 from pcmetrics import get_pc_metrics
+from fitbitmetrics import display_steps_data
 
 # 🔹 Fitbit App credentials
 CLIENT_ID = "23Q3T7"
@@ -14,7 +15,7 @@ REDIRECT_URI = "http://localhost:5001/callback"  # Flask will handle this
 AUTH_URL = "https://www.fitbit.com/oauth2/authorize"
 TOKEN_URL = "https://api.fitbit.com/oauth2/token"
 HEART_RATE_URL = "https://api.fitbit.com/1/user/-/activities/heart/date/today/1d.json"  
-STEPS_URL = "https://api.fitbit.com/1/user/-/activities/steps/date/today/1d.json"  
+STEPS_URL = "https://api.fitbit.com/1/user/-/activities/steps/date/today/1d/15min.json"  
 REAL_TIME_HEART_RATE_URL = "https://api.fitbit.com/1/user/-/activities/heart/date/today/1d/1min.json"  
 
 
@@ -84,16 +85,16 @@ def callback():
     # Fetch Real-Time Heart Rate Data
     real_time_response = requests.get(REAL_TIME_HEART_RATE_URL, headers=headers)
     real_time_data = real_time_response.json()
-    print("Real-Time Heart Rate Data:", real_time_data)
+
 
     # Fetch steps data
     steps_response = requests.get(STEPS_URL, headers=headers)
-    print("Steps API response:", steps_response.text)
     steps_data = steps_response.json()
-
+    
     if 'activities-steps' not in steps_data:
         return f"Error fetching steps data: {steps_data}"
-    
+    steps_list = display_steps_data(steps_data)
+
     # Get PC metrics
     pc_metrics = get_pc_metrics()
 
@@ -103,7 +104,7 @@ def callback():
         resting_heart_rate=fitbit_data['activities-heart'][0]['value'].get('restingHeartRate', None),
         heart_rate_zones=fitbit_data['activities-heart'][0]['value'].get('heartRateZones', []),
         real_time_data=real_time_data.get('activities-heart-intraday', {}).get('dataset', []),
-        steps_data=steps_data['activities-steps'],
+        steps_data=steps_list,
         pc_metrics=pc_metrics
     )
 if __name__ == "__main__":

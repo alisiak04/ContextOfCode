@@ -42,17 +42,19 @@
         {% endif %}
     </ul>
 
-    <!-- Steps Data -->
-    <h2>Steps Data</h2>
+    
+    <!-- Steps Data (15-Minute Intervals) -->
+    <h2>Steps Data (15-Minute Intervals)</h2>
     <ul>
         {% if steps_data %}
             {% for entry in steps_data %}
-                <li>Date: {{ entry.dateTime }}, Steps: {{ entry.value }}</li>
+                <li>Time: {{ entry.time_slot }}, Steps: {{ entry.steps }}</li>
             {% endfor %}
         {% else %}
-            <li>No steps data available</li>
+            <li>No 15-minute steps data available</li>
         {% endif %}
     </ul>
+    
     <h2>PC Usage Data</h2>
 <ul>
     <li>Active Screen Time: {{ pc_metrics['active_screen_time'] }}</li>

@@ -1,7 +1,6 @@
-from flask import render_template
+from datetime import datetime
 
 from flask import render_template
-
 def display_heart_rate_data(heart_rate_data):
     """ Extract resting heart rate and heart rate zones for display """
     print("Original Heart Rate Data:", heart_rate_data)
@@ -24,12 +23,12 @@ def display_heart_rate_data(heart_rate_data):
 
 
 def display_steps_data(steps_data):
-    """ Extract steps data """
     steps_list = []
-    if 'activities-steps' in steps_data:
-        steps_value = steps_data['activities-steps'][0]['value']
-        steps_list.append({"dateTime": "Today", "value": steps_value})
-    
+    for entry in steps_data.get('activities-steps-intraday', {}).get('dataset', []):
+        # Extract time and steps value, and format as necessary
+        time_slot = entry.get('time', '')
+        steps = entry.get('value', 0)
+        steps_list.append({"time_slot": time_slot, "steps": steps})
     return steps_list
 
 
