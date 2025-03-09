@@ -1,7 +1,6 @@
 import requests
 from flask import Flask, request, redirect, render_template
 import base64
-from fitbitmetrics import display_heart_rate_data, display_steps_data, display_real_time_heart_rate_data
 from pcmetrics import get_pc_metrics
 from fitbitmetrics import display_steps_data
 
