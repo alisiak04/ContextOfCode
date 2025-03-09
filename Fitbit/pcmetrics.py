@@ -2,6 +2,7 @@ import psutil
 import time
 from datetime import timedelta
 import subprocess
+import platform
 
 def get_active_screen_time():
     """ Get the system uptime as a proxy for active screen time """
@@ -54,11 +55,19 @@ def get_safari_tabs():
 tabs_safari = get_safari_tabs()
 print(f"Safari Tabs Open: {tabs_safari}")
 
+def get_open_tabs():
+    """ Get the number of open tabs based on the platform (macOS or Linux) """
+    if platform.system() == "Darwin":  # macOS
+        chrome_tabs = get_open_tabs_mac()
+        safari_tabs = get_safari_tabs()
+    else:  # Linux (PythonAnywhere)
+        chrome_tabs = safari_tabs = 0  # We won't get tab counts on Linux
+    return chrome_tabs + safari_tabs
+
 def get_pc_metrics():
     """ Collect and return PC metrics """
-    chrome_tabs = get_open_tabs_mac()
-    safari_tabs = get_safari_tabs()
-    total_tabs = chrome_tabs + safari_tabs
+
+    total_tabs = get_open_tabs()
 
     return {
         "active_screen_time": get_active_screen_time(),
