@@ -1,8 +1,8 @@
 import requests
 from flask import Flask, request, redirect, render_template
 import base64
-from pcmetrics import get_pc_metrics
-from fitbitmetrics import display_steps_data
+from .pcmetrics import get_pc_metrics
+from .fitbitmetrics import display_steps_data
 
 # 🔹 Fitbit App credentials
 CLIENT_ID = "23Q3T7"
