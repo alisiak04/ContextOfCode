@@ -17,6 +17,7 @@ TOKEN_URL = "https://api.fitbit.com/oauth2/token"
 HEART_RATE_URL = "https://api.fitbit.com/1/user/-/activities/heart/date/today/1d.json"  
 STEPS_URL = "https://api.fitbit.com/1/user/-/activities/steps/date/today/1d/15min.json"  
 REAL_TIME_HEART_RATE_URL = "https://api.fitbit.com/1/user/-/activities/heart/date/today/1d/1min.json"  
+DISPLAY_NAME_URL = "https://api.fitbit.com/1/user/-/profile.json"
 
 
 app = Flask(__name__)
@@ -76,6 +77,16 @@ def callback():
 
     # Fetch Fitbit metrics (Heart Rate Data)
     headers = {"Authorization": f"Bearer {access_token}"}
+
+    profile_response = requests.get(DISPLAY_NAME_URL, headers=headers)
+    profile_data = profile_response.json()
+    
+    if "user" not in profile_data or "displayName" not in profile_data["user"]:
+        return "Error: Unable to fetch user profile data"
+    
+    display_name = profile_data["user"]["displayName"] 
+    #i still have to use the name somewhere 
+
     fitbit_response = requests.get(HEART_RATE_URL, headers=headers)
     fitbit_data = fitbit_response.json()
 
