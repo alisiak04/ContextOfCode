@@ -1,7 +1,7 @@
 -- Create the users table
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT UNIQUE NOT NULL
+    display_name TEXT UNIQUE NOT NULL
 );
 
 -- Real-time heart rate logs every minute
