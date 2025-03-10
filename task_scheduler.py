@@ -4,6 +4,7 @@ from app.api.fitbit import FitbitAPI
 from app.utils.pcmetrics import get_pc_metrics
 from app.utils.fitbitmetrics import display_steps_data
 from app.utils.activity_monitor import ActivityMonitor
+import traceback
 
 class TaskScheduler:
     def __init__(self, access_token, shared_data, socketio):
@@ -31,22 +32,24 @@ class TaskScheduler:
                 pc_metrics = get_pc_metrics()
 
                 # Update shared data
-                self.shared_data.update({
-                    "profile_data": fitbit_user.profile,
-                    "resting_heart_rate": fitbit_user.resting_heart_rate,
-                    "heart_rate_zones": fitbit_user.heart_rate_zones,
-                    "real_time_data": fitbit_user.real_time_heart_rate_data,
-                    "steps_data": steps_list,
-                    "pc_metrics": pc_metrics,
-                })
+                with self.shared_data.lock:
+                    self.shared_data.update({
+                        "profile_data": fitbit_user.profile,
+                        "resting_heart_rate": fitbit_user.resting_heart_rate,
+                        "heart_rate_zones": fitbit_user.heart_rate_zones,
+                        "real_time_data": fitbit_user.real_time_heart_rate_data,
+                        "steps_data": steps_list,
+                        "pc_metrics": pc_metrics,
+                    })
 
-                # Push update to frontend via WebSockets
-                self.socketio.emit("update_metrics", self.shared_data)
+                    # Push update to frontend via WebSockets
+                    self.socketio.emit("update_metrics", self.shared_data.data)
          
                 print("Pushed new data to frontend")
 
             except Exception as e:
                 print(f"Error in fetching data: {e}")
+                traceback.print_exc()
 
             time.sleep(300)  # Fetch data every 5 minutes
 

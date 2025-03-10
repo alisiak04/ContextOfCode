@@ -47,41 +47,83 @@ class FitbitAPI:
 
     @staticmethod
     def get_user_data(access_token):
-        """Fetch all user data from Fitbit API"""
+        """Fetch all user data from Fitbit API, with proper error handling"""
         headers = {"Authorization": f"Bearer {access_token}"}
-        
-        try:
-            # Get user profile
-            profile_response = requests.get(Config.DISPLAY_NAME_URL, headers=headers)
-            profile_data = profile_response.json()
-            
-            
-            
-            # Get heart rate data
-            heart_rate_response = requests.get(Config.HEART_RATE_URL, headers=headers)
-            heart_rate_data = heart_rate_response.json()
-            
-            # Get real-time heart rate data
-            real_time_response = requests.get(Config.REAL_TIME_HEART_RATE_URL, headers=headers)
-            real_time_data = real_time_response.json()
-            
-            
-            # Get steps data
-            steps_response = requests.get(Config.STEPS_URL, headers=headers)
-            steps_data = steps_response.json()
-            
-            user_data = {
-                'profile': profile_data,
-                'heart_rate': heart_rate_data,
-                'real_time_heart_rate': real_time_data,
-                'steps': steps_data
-            }
-            
-            return FitbitUser(user_data)
-            
-        except requests.exceptions.RequestException as e:
-            raise DataFetchError(f"Failed to fetch user data: {str(e)}")
 
+        # Initialize empty data dictionary
+        user_data = {}
+
+        try:
+            print(f"🌍 Fetching Fitbit user profile...")
+            profile_response = requests.get(Config.DISPLAY_NAME_URL, headers=headers)
+            print(f"🔍 Profile Response Code: {profile_response.status_code}")
+            print(f"🔍 Profile Response Body: {profile_response.text}")
+
+            if profile_response.status_code != 200:
+                print("🚨 Failed to fetch user profile!")
+                return None  # Return None if profile request fails
+
+            user_data["profile"] = profile_response.json()
+
+        except requests.exceptions.RequestException as e:
+            print(f"🚨 Profile request failed: {e}")
+            return None
+
+        # Heart Rate Data
+        try:
+            print(f"🌍 Fetching Fitbit heart rate data...")
+            heart_rate_response = requests.get(Config.HEART_RATE_URL, headers=headers)
+            print(f"🔍 Heart Rate Response Code: {heart_rate_response.status_code}")
+            print(f"🔍 Heart Rate Response Body: {heart_rate_response.text}")
+
+            if heart_rate_response.status_code != 200:
+                print("⚠️ Warning: Heart rate data unavailable.")
+                user_data["heart_rate"] = None  # Store None instead of failing
+            else:
+                user_data["heart_rate"] = heart_rate_response.json()
+
+        except requests.exceptions.RequestException as e:
+            print(f"⚠️ Heart rate request failed: {e}")
+            user_data["heart_rate"] = None  # Store None and continue
+
+        # Real-Time Heart Rate Data
+        try:
+            print(f"🌍 Fetching Fitbit real-time heart rate data...")
+            real_time_response = requests.get(Config.REAL_TIME_HEART_RATE_URL, headers=headers)
+            print(f"🔍 Real-Time HR Response Code: {real_time_response.status_code}")
+            print(f"🔍 Real-Time HR Response Body: {real_time_response.text}")
+
+            if real_time_response.status_code != 200:
+                print("⚠️ Warning: Real-time heart rate data unavailable.")
+                user_data["real_time_heart_rate"] = None
+            else:
+                user_data["real_time_heart_rate"] = real_time_response.json()
+
+        except requests.exceptions.RequestException as e:
+            print(f"⚠️ Real-time heart rate request failed: {e}")
+            user_data["real_time_heart_rate"] = None
+
+        # Steps Data
+        try:
+            print(f"🌍 Fetching Fitbit steps data...")
+            steps_response = requests.get(Config.STEPS_URL, headers=headers)
+            print(f"🔍 Steps Response Code: {steps_response.status_code}")
+            print(f"🔍 Steps Response Body: {steps_response.text}")
+
+            if steps_response.status_code != 200:
+                print("⚠️ Warning: Steps data unavailable.")
+                user_data["steps"] = None
+            else:
+                user_data["steps"] = steps_response.json()
+
+        except requests.exceptions.RequestException as e:
+            print(f"⚠️ Steps request failed: {e}")
+            user_data["steps"] = None
+
+        print(f"✅ Final Fitbit Data: {user_data}")  # Debugging output
+
+        return FitbitUser(user_data) if user_data else None
+    
     @staticmethod
     def get_devices(access_token):
         """Get the list of devices for the user"""
