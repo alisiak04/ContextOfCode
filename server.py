@@ -44,6 +44,14 @@ def callback():
         scheduler = TaskScheduler(access_token, cached_data, socketio)
         scheduler.start()
 
+        initial_data = FitbitAPI.get_user_data(access_token)
+
+
+        with cached_data:
+            cached_data.update(initial_data)  # Update cache with initial data
+
+
+
         return redirect("/data")
 
     except FitbitAPIError as e:

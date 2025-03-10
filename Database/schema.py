@@ -1,11 +1,14 @@
--- Create the users table
-CREATE TABLE users (
+import sqlite3
+
+DATABASE = "health_work_balance.db"
+
+schema = """
+CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     display_name TEXT UNIQUE NOT NULL
 );
 
--- Real-time heart rate logs every minute
-CREATE TABLE RealTimeHeartRate (
+CREATE TABLE IF NOT EXISTS RealTimeHeartRate (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -13,8 +16,7 @@ CREATE TABLE RealTimeHeartRate (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Resting heart rate recorded once per day
-CREATE TABLE RestHeartRate (
+CREATE TABLE IF NOT EXISTS RestHeartRate (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
     date DATE NOT NULL,
@@ -22,8 +24,7 @@ CREATE TABLE RestHeartRate (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- PC usage logs (CPU and open tabs)
-CREATE TABLE PC_usage (
+CREATE TABLE IF NOT EXISTS PC_usage (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -32,22 +33,26 @@ CREATE TABLE PC_usage (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Steps and screen time per hour
-CREATE TABLE StepScreen (
+CREATE TABLE IF NOT EXISTS StepScreen (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     steps INTEGER NOT NULL,
-    screen_time INTEGER NOT NULL, -- in minutes
+    screen_time INTEGER NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Daily burnout trends
-CREATE TABLE BurnoutTrends (
+CREATE TABLE IF NOT EXISTS BurnoutTrends (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
     date DATE NOT NULL,
-    total_stress_time INTEGER NOT NULL, -- in minutes
+    total_stress_time INTEGER NOT NULL,
     avg_heart_rate INTEGER NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+"""
+
+with sqlite3.connect(DATABASE) as conn:
+    conn.executescript(schema)
+
+print("✅ Database initialized!")
