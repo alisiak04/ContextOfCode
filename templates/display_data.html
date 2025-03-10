@@ -1,170 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Health & Work Balance Dashboard</title>
-    <!-- Add Chart.js -->
+
+    <!-- Include Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --primary-lilac: #9B7CB9;
-            --dark-lilac: #6A4C93;
-            --light-lilac: #B8A1D9;
-            --very-light-lilac: #F0E6FF;
-            --accent-lilac: #8465B3;
-        }
-        
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--very-light-lilac);
-        }
-        
-        .navbar {
-            background: linear-gradient(135deg, var(--dark-lilac), var(--primary-lilac));
-            color: white;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(106, 76, 147, 0.2);
-        }
-        
-        .navbar-title {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: white;
-            text-decoration: none;
-        }
-        
-        .profile-section {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .profile-icon {
-            width: 40px;
-            height: 40px;
-            background-color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5em;
-            color: var(--primary-lilac);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .profile-name {
-            font-size: 1.1em;
-            font-weight: 500;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 20px;
-        }
-        
-        .metric-card {
-            background: white;
-            padding: 20px;
-            margin: 10px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(106, 76, 147, 0.1);
-            border: 1px solid rgba(184, 161, 217, 0.2);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        
-        .metric-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(106, 76, 147, 0.15);
-        }
-        
-        .metric-title {
-            font-size: 1.2em;
-            color: var(--dark-lilac);
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-        
-        .metric-value {
-            font-size: 2em;
-            color: var(--primary-lilac);
-        }
-        
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-        
-        .chart-container {
-            position: relative;
-            height: 400px;
-            width: 100%;
-            margin: 20px 0;
-        }
-        
-        .current-heart-rate {
-            background: linear-gradient(135deg, #ff6b6b, #ff8787);
-            color: white;
-            text-align: center;
-        }
-        
-        .current-heart-rate .metric-title {
-            color: white;
-            font-size: 1.4em;
-        }
-        
-        .current-heart-rate .metric-value {
-            color: white;
-            font-size: 3em;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        .progress {
-            background: rgba(255, 255, 255, 0.2) !important;
-        }
-        
-        .progress-bar {
-            background: var(--accent-lilac) !important;
-        }
-        
-        @keyframes heartbeat {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-        
-        .heart-emoji {
-            display: inline-block;
-            animation: heartbeat 1s infinite;
-        }
-        
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-        
-        li {
-            padding: 8px 0;
-            border-bottom: 1px solid var(--very-light-lilac);
-            color: var(--dark-lilac);
-        }
-        
-        li:last-child {
-            border-bottom: none;
-        }
-    </style>
+    <!-- Include jQuery & Socket.IO -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.js"></script>
+    <link rel ="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <!-- Navigation Bar -->
+
     <div class="navbar">
         <a href="/" class="navbar-title">Health & Work Balance Dashboard</a>
         <div class="profile-section">
@@ -181,8 +30,7 @@
 
     <div class="container">
         <h1>Health & Work Balance Dashboard</h1>
-        
-        <!-- Heart Rate Chart -->
+
         <div class="metric-card">
             <div class="metric-title">Heart Rate (Last 8 Hours)</div>
             <div class="chart-container">
@@ -191,254 +39,195 @@
         </div>
 
         <div class="grid">
-            <!-- Current Heart Rate -->
-            <div class="metric-card current-heart-rate">
-                <div class="metric-title">Current Heart Rate</div>
-                <div class="metric-value">
-                    {% if real_time_data and real_time_data|length > 0 %}
-                        {{ real_time_data[-1].value }} <span class="heart-emoji">❤️</span>
-                    {% else %}
-                        N/A <span class="heart-emoji">❤️</span>
-                    {% endif %}
-                </div>
+            <div class="metric-card-heartrate" >
+                <div class="metric-title-heartrate">Current Heart Rate</div>
+                <div class="metric-value-heartrate "id="current-heart-rate">N/A ❤️</div>
             </div>
 
-            <!-- Heart Rate Metrics -->
             <div class="metric-card">
                 <div class="metric-title">Resting Heart Rate</div>
-                <div class="metric-value">{{ resting_heart_rate if resting_heart_rate else 'N/A' }} bpm</div>
+                <div class="metric-value" id="resting-heart-rate">N/A bpm</div>
             </div>
 
-            <!-- Steps Data -->
             <div class="metric-card">
                 <div class="metric-title">Steps Today</div>
-                <!-- Debug Info -->
-                <div style="display: none;">
-                    Steps Data Type: {{ steps_data.__class__.__name__ }}
-                    Raw Steps Data: {{ steps_data }}
-                </div>
-                <div class="metric-value">
-                    {% if steps_data and steps_data[0] %}
-                        {{ steps_data[0].value }} 👣
-                        <div style="font-size: 0.5em; color: #666; margin-top: 5px;">
-                            Goal: 10,000 steps
-                            <div class="progress" style="height: 10px; background: #eee; border-radius: 5px; margin-top: 5px;">
-                                {% set progress = (steps_data[0].value / 10000 * 100) %}
-                                {% if progress > 100 %}
-                                    {% set progress = 100 %}
-                                {% endif %}
-                                <div class="progress-bar" style="width: {{ progress }}%; height: 100%; background: #28a745; border-radius: 5px;"></div>
-                            </div>
-                        </div>
-                    {% else %}
-                        No steps recorded today 👣
-                    {% endif %}
+                <div class="metric-value" id="steps-today">N/A 👣</div>
+                <div class="progress">
+                    <div class="progress-bar" id="steps-progress" style="width: 0%; height: 10px;"></div>
                 </div>
             </div>
 
-            <!-- PC Metrics -->
             <div class="metric-card">
                 <div class="metric-title">CPU Usage</div>
-                <div class="metric-value">
-                    {% if pc_metrics and pc_metrics.cpu_usage != 'N/A' %}
-                        {{ pc_metrics.cpu_usage }}
-                        <div class="progress" style="height: 10px; background: #eee; border-radius: 5px; margin-top: 5px;">
-                            {% set cpu_value = pc_metrics.cpu_usage.replace('%', '') | float %}
-                            <div class="progress-bar" style="width: {{ cpu_value }}%; height: 100%; background: #007bff; border-radius: 5px;"></div>
-                        </div>
-                    {% else %}
-                        N/A
-                    {% endif %}
-                </div>
+                <div class="metric-value" id="cpu-usage">N/A</div>
             </div>
 
             <div class="metric-card">
                 <div class="metric-title">Memory Usage</div>
-                <div class="metric-value">
-                    {% if pc_metrics and pc_metrics.memory_usage != 'N/A' %}
-                        {{ pc_metrics.memory_usage }}
-                        <div class="progress" style="height: 10px; background: #eee; border-radius: 5px; margin-top: 5px;">
-                            {% set memory_value = pc_metrics.memory_usage.replace('%', '') | float %}
-                            <div class="progress-bar" style="width: {{ memory_value }}%; height: 100%; background: #28a745; border-radius: 5px;"></div>
-                        </div>
-                    {% else %}
-                        N/A
-                    {% endif %}
-                </div>
+                <div class="metric-value" id="memory-usage">N/A</div>
             </div>
 
             <div class="metric-card">
                 <div class="metric-title">Disk Usage</div>
-                <div class="metric-value">
-                    {% if pc_metrics and pc_metrics.disk_usage != 'N/A' %}
-                        {{ pc_metrics.disk_usage }}
-                        <div class="progress" style="height: 10px; background: #eee; border-radius: 5px; margin-top: 5px;">
-                            {% set disk_value = pc_metrics.disk_usage.replace('%', '') | float %}
-                            <div class="progress-bar" style="width: {{ disk_value }}%; height: 100%; background: #dc3545; border-radius: 5px;"></div>
-                        </div>
-                    {% else %}
-                        N/A
-                    {% endif %}
-                </div>
+                <div class="metric-value" id="disk-usage">N/A</div>
             </div>
 
             <div class="metric-card">
                 <div class="metric-title">Active Processes</div>
-                <div class="metric-value">
-                    {% if pc_metrics and pc_metrics.process_count != 'N/A' %}
-                        {{ pc_metrics.process_count }} 🔄
-                    {% else %}
-                        N/A
-                    {% endif %}
-                </div>
+                <div class="metric-value" id="process-count">N/A</div>
             </div>
 
             <div class="metric-card">
                 <div class="metric-title">System Uptime</div>
-                <div class="metric-value">
-                    {% if pc_metrics and pc_metrics.uptime_hours != 'N/A' %}
-                        {{ pc_metrics.uptime_hours }} hours ⏱️
-                    {% else %}
-                        N/A
-                    {% endif %}
-                </div>
+                <div class="metric-value" id="uptime-hours">N/A hours ⏱️</div>
             </div>
-        </div>
-
-        <!-- Heart Rate Zones -->
-        <div class="metric-card">
-            <div class="metric-title">Heart Rate Zones</div>
-            <ul>
-            {% for zone in heart_rate_zones %}
-                <li>{{ zone.name }}: {{ zone.min }} - {{ zone.max }} bpm</li>
-            {% endfor %}
-            </ul>
         </div>
     </div>
 
     <script>
-        // Get the raw heart rate data
-        const rawHeartRateData = {{ real_time_data | tojson | safe }};
-        const restingHeartRate = {{ resting_heart_rate if resting_heart_rate else 'null' }};
+        var socket = io();
+        var heartRateChart;
 
-        // Function to parse time string and get hours and minutes
         function parseTime(timeStr) {
             const [hours, minutes] = timeStr.split(':').map(Number);
             return hours * 60 + minutes; // Convert to minutes since midnight
         }
 
-        // Function to format minutes back to time string
         function formatTime(totalMinutes) {
             const hours = Math.floor(totalMinutes / 60);
             const minutes = totalMinutes % 60;
             return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
         }
 
-        // Get current time in minutes
-        const now = new Date();
-        const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
+        function updateHeartRateChart(realTimeData, restingHeartRate) {
+            console.log("Processing heart rate data:", realTimeData);
 
-        // Filter data for last 8 hours
-        const eightHoursInMinutes = 8 * 60;
-        const filteredData = rawHeartRateData.filter(reading => {
-            const readingTime = parseTime(reading.time);
-            const timeDiff = currentTimeInMinutes - readingTime;
-            return timeDiff >= 0 && timeDiff <= eightHoursInMinutes;
-        });
+            if (!realTimeData || realTimeData.length === 0) {
+                console.warn("No heart rate data available.");
+                return;
+            }
 
-        // Calculate 15-minute intervals for the last 8 hours
-        const intervalData = [];
-        let currentInterval = Math.floor(currentTimeInMinutes / 15) * 15 - eightHoursInMinutes;
-        
-        while (currentInterval <= currentTimeInMinutes) {
-            const intervalReadings = filteredData.filter(reading => {
+            const now = new Date();
+            const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
+            const eightHoursAgo = currentTimeInMinutes - (8 * 60);
+
+            // Filter data for last 8 hours
+            const filteredData = realTimeData.filter(reading => {
                 const readingTime = parseTime(reading.time);
-                return readingTime >= currentInterval && readingTime < currentInterval + 15;
+                return readingTime >= eightHoursAgo && readingTime <= currentTimeInMinutes;
             });
 
-            if (intervalReadings.length > 0) {
-                const sum = intervalReadings.reduce((acc, reading) => acc + reading.value, 0);
-                intervalData.push({
-                    time: formatTime(currentInterval),
-                    value: Math.round(sum / intervalReadings.length)
-                });
-            }
-            currentInterval += 15;
-        }
+            // Organize data into 15-minute intervals
+            const intervalData = [];
+            let currentInterval = Math.floor(eightHoursAgo / 15) * 15;
 
-        // Create the chart
-        const ctx = document.getElementById('heartRateChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: intervalData.map(d => d.time),
-                datasets: [
-                    {
-                        label: 'Heart Rate (15min avg)',
-                        data: intervalData.map(d => d.value),
-                        borderColor: '#007bff',
-                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
-                    },
-                    {
-                        label: 'Resting Heart Rate',
-                        data: Array(intervalData.length).fill(restingHeartRate),
-                        borderColor: '#dc3545',
-                        borderDash: [5, 5],
-                        fill: false
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Heart Rate Monitoring (15-Minute Intervals)',
-                        font: {
-                            size: 16
+            while (currentInterval <= currentTimeInMinutes) {
+                const intervalReadings = filteredData.filter(reading => {
+                    const readingTime = parseTime(reading.time);
+                    return readingTime >= currentInterval && readingTime < currentInterval + 15;
+                });
+
+                if (intervalReadings.length > 0) {
+                    const sum = intervalReadings.reduce((acc, reading) => acc + reading.value, 0);
+                    intervalData.push({
+                        time: formatTime(currentInterval),
+                        value: Math.round(sum / intervalReadings.length) // Get average for interval
+                    });
+                } else {
+                    intervalData.push({ time: formatTime(currentInterval), value: null });
+                }
+
+                currentInterval += 15;
+            }
+
+            const ctx = document.getElementById("heartRateChart").getContext("2d");
+
+            if (heartRateChart) {
+                heartRateChart.destroy(); // Destroy previous chart before creating a new one
+            }
+
+            heartRateChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: intervalData.map(d => d.time),
+                    datasets: [
+                        {
+                            label: "Heart Rate (15min avg)",
+                            data: intervalData.map(d => d.value),
+                            borderColor: "#007bff",
+                            backgroundColor: "rgba(0, 123, 255, 0.1)",
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: "Resting Heart Rate",
+                            data: Array(intervalData.length).fill(restingHeartRate),
+                            borderColor: "#dc3545",
+                            borderDash: [5, 5],
+                            fill: false
                         }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `Heart Rate: ${context.raw} BPM`;
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: "Heart Rate (BPM)"
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: "Time (15-min intervals)"
                             },
-                            title: function(context) {
-                                return `Time: ${context[0].label}`;
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: 16
                             }
                         }
                     }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        title: {
-                            display: true,
-                            text: 'Heart Rate (BPM)'
-                        },
-                        min: Math.min(restingHeartRate * 0.8, ...intervalData.map(d => d.value)) - 5,
-                        max: Math.max(...intervalData.map(d => d.value)) + 5
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Time (15-min intervals)'
-                        },
-                        ticks: {
-                            maxRotation: 45,
-                            minRotation: 45,
-                            autoSkip: true,
-                            maxTicksLimit: 16  // Show fewer x-axis labels to prevent overcrowding
-                        }
-                    }
                 }
+            });
+        }
+
+        socket.on("update_metrics", function (data) {
+            console.log("Updated data received:", data);
+
+            if (!data) return;
+
+            if (data.real_time_data && data.real_time_data.length > 0) {
+                $("#current-heart-rate").html(`${data.real_time_data[data.real_time_data.length - 1].value} ❤️`);
+            }
+
+            if (data.resting_heart_rate) {
+                $("#resting-heart-rate").text(`${data.resting_heart_rate} bpm`);
+            }
+
+            if (data.steps_data && data.steps_data.length > 0) {
+                let stepsValue = data.steps_data[0].value;
+                $("#steps-today").text(`${stepsValue} 👣`);
+                let progress = Math.min(100, (stepsValue / 10000) * 100);
+                $("#steps-progress").css("width", `${progress}%`);
+            }
+
+            if (data.pc_metrics) {
+                $("#cpu-usage").text(data.pc_metrics.cpu_usage);
+                $("#memory-usage").text(data.pc_metrics.memory_usage);
+                $("#disk-usage").text(data.pc_metrics.disk_usage);
+                $("#process-count").text(`${data.pc_metrics.process_count} 🔄`);
+                $("#uptime-hours").text(`${data.pc_metrics.uptime_hours} hours ⏱️`);
+            }
+            if (data.real_time_data) {
+                updateHeartRateChart(data.real_time_data, data.resting_heart_rate);
             }
         });
     </script>
+
 </body>
 </html>

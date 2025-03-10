@@ -65,6 +65,7 @@ class FitbitAPI:
             real_time_response = requests.get(Config.REAL_TIME_HEART_RATE_URL, headers=headers)
             real_time_data = real_time_response.json()
             
+            
             # Get steps data
             steps_response = requests.get(Config.STEPS_URL, headers=headers)
             steps_data = steps_response.json()
