@@ -8,7 +8,7 @@ from cached_data import CachedData
 from Database.retrieve_database import fetch_hourly_steps, fetch_pc_usage_trends
 import json
 from log_activity import log_activity  
-
+from task_scheduler import shared_data
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
@@ -29,7 +29,7 @@ def home():
 def callback():
     """Handle OAuth callback and start background scheduler."""
     global scheduler
-
+    
     try:
         auth_code = request.args.get("code")
         if not auth_code:
@@ -44,11 +44,11 @@ def callback():
             cached_data.update(data=None, access_token=access_token)
 
         # Start scheduler
-        scheduler = TaskScheduler(access_token, cached_data, socketio)
+        scheduler = TaskScheduler(access_token, socketio)
         scheduler.start()
 
+        # Immediately fetch and cache data
         initial_data = FitbitAPI.get_user_data(access_token)
-
         with cached_data:
             cached_data.update(initial_data)  # Update cache with initial data
 
@@ -59,40 +59,28 @@ def callback():
 
 @app.route("/data")
 def display_data():
-    """Fetch Fitbit data using thread-safe caching."""
+    """Fetch and cache data immediately if expired, otherwise return cached data."""
     try:
         print("🔄 Entering /data route...") 
         with cached_data:
-            print("🔎 Checking if cached data is expired...")
             if cached_data.is_expired():
-                with CacheUpdateManager(cached_data) as cache_update_manager:
-                    if cache_update_manager.update_started_elsewhere():
-                        print("🔄 Another thread is updating the cache. Waiting...")
-                        cache_update_manager.spin_wait_for_update_to_complete()
-                        data_snapshot = None
-                    else:
-                        print("✅ No other updates in progress. Fetching new data...")
-                        access_token = cached_data.get_token()
-                        print(f"🔑 Storing new access token: {access_token}")
-                        if not access_token:
-                            print("⚠️ No access token found, redirecting to login.")
-                            return redirect("/")  # No token, re-authenticate
-                       
-                        print(f"Fetching data with token: {access_token}")
-                        data_snapshot = FitbitAPI.get_user_data(access_token)
-
-                if data_snapshot:
-                    with cached_data:  # Re-acquire lock to update
-                        cached_data.update(data_snapshot)
-
-            else:
-                data_snapshot = cached_data.get_data()
-
+                access_token = cached_data.get_token()
+                if not access_token:
+                    return redirect("/")  # No token, re-authenticate
+                
+                # Fetch new data and cache it
+                new_data = FitbitAPI.get_user_data(access_token)
+                with cached_data:
+                    cached_data.update(new_data)
+            
+            data_snapshot = cached_data.get_data()
+        
         return render_template("display_data.html", data=data_snapshot)
-
+    
     except Exception as e:
         print(f"Error in fetching data: {e}") 
         return {"status": "error", "message": str(e)}, 500
+
 
 @app.route("/trends")
 def trends():
@@ -120,22 +108,17 @@ def log_activity_endpoint():
     print(f"📤 Response: {result}, Status: {status}")
     return jsonify(result), status
 
-@socketio.on('connect')
-def handle_connect(auth):
-    print("🔌 Client connected, pushing cached data...")
 
-    with cached_data:  # Get lock before accessing data
-        current_data = cached_data.get_data()
-        
-    if current_data:
-        try:
-            # Ensure JSON-serializable format
-            json_serializable_data = json.dumps(current_data, default=lambda o: o.__dict__)
-            emit('update_metrics', json.loads(json_serializable_data))  # Convert back to dictionary
-        except Exception as e:
-            print(f"⚠️ JSON Serialization Error: {e}")
-    else:
-        print("⚠️ No cached data available to send.")
+@socketio.on('connect')
+def handle_connect(auth=None):
+    """Handle WebSocket connection with optional authentication."""
+    try:
+        print("✅ Client connected")
+        with shared_data["lock"]:
+            current_data = shared_data["data"].copy()  # Safe access to shared data
+        socketio.emit('update_metrics', current_data)
+    except Exception as e:
+        print(f"❌ Error in handle_connect: {e}")
 
 if __name__ == "__main__":
     socketio.run(app, port=5001, debug=True, use_reloader=False)

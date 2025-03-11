@@ -195,28 +195,38 @@
             });
         }
 
+        // 🟢 Listen for full metric updates (every 5 mins)
         socket.on("update_metrics", function (data) {
-            console.log("Updated data received:", data);
+            console.log("📊 Updated data received:", data);
 
             if (!data) return;
 
+            // Update profile name
             if (data.display_name) {
                 $(".profile-name").text(data.display_name);
             }
-            
+
+            // ✅ Update latest heart rate only if available
+            if (data.latest_heart_rate && data.latest_heart_rate.value) {
+                $("#current-heart-rate").html(`${data.latest_heart_rate.value} ❤️`);
+            }
+
+            // ✅ Update heart rate chart only if real-time data is available
             if (data.real_time_data && data.real_time_data.length > 0) {
-                $("#current-heart-rate").html(`${data.real_time_data[data.real_time_data.length - 1].value} ❤️`);
                 updateHeartRateChart(data.real_time_data, data.resting_heart_rate);
             }
 
+            // ✅ Update resting heart rate
             if (data.resting_heart_rate) {
                 $("#resting-heart-rate").text(`${data.resting_heart_rate} bpm`);
             }
 
+            // ✅ Update steps
             if (data.steps_data && data.steps_data.length > 0) {
                 $("#steps-today").text(`${data.steps_data[data.steps_data.length - 1].steps} 👣`);
             }
 
+            // ✅ Update PC metrics
             if (data.pc_metrics) {
                 $("#cpu-usage").text(data.pc_metrics.cpu_usage);
                 $("#memory-usage").text(data.pc_metrics.memory_usage);
@@ -225,6 +235,16 @@
                 $("#uptime-hours").text(`${data.pc_metrics.uptime_hours} hours ⏱️`);
             }
         });
+
+        // 🟢 Listen for real-time heart rate updates (emitted separately)
+        socket.on("update_heart_rate", function (data) {
+            console.log("📡 Real-time heart rate update received:", data);
+
+            if (data.latest_hr && data.latest_hr.value) {
+                $("#current-heart-rate").html(`${data.latest_hr.value} ❤️`);
+            }
+        });
+
     </script>
 
 </body>

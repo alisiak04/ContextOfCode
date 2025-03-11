@@ -26,6 +26,4 @@ class FitbitUser:
     @property
     def real_time_heart_rate_data(self):
         dataset =  self.real_time_heart_rate.get('activities-heart-intraday', {}).get('dataset', []) 
-       
-
         return dataset
