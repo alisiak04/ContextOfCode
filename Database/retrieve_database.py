@@ -13,11 +13,14 @@ def fetch_hourly_steps():
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT strftime('%Y-%m-%d %H:00', timestamp) AS hour, SUM(steps) AS total_steps
+            SELECT 
+                strftime('%Y-%m-%d %H:00', timestamp) AS hour,
+                MAX(steps) - MIN(steps) AS total_steps
             FROM StepScreen
             WHERE timestamp >= datetime('now', '-24 hours')
             GROUP BY hour
             ORDER BY hour ASC;
+
         """)
 
         rows = cursor.fetchall()
