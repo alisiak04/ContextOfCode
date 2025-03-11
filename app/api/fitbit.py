@@ -3,9 +3,8 @@ import base64
 from config.settings import Config
 from app.errors.handlers import AuthenticationError, DataFetchError
 from app.models.user import FitbitUser
-from datetime import datetime, timedelta
 import psutil
-import math
+
 
 class FitbitAPI:
     @staticmethod

@@ -5,7 +5,6 @@ from app.api.fitbit import FitbitAPI
 from app.utils.pcmetrics import get_pc_metrics
 from flask_socketio import SocketIO
 from threading import Lock
-import json
 from Database.databaseHandle import (
     insert_user,
     insert_pc_metrics,

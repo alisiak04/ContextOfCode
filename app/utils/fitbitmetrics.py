@@ -1,4 +1,4 @@
-from datetime import datetime
+
 
 def display_steps_data(steps_data):
     """Extracts step data from Fitbit API response, grouped into 15-minute intervals for the entire day."""

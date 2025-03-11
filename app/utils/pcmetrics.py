@@ -1,5 +1,4 @@
 import psutil
-import time
 from datetime import datetime
 
 def get_pc_metrics():

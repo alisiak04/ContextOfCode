@@ -3,7 +3,6 @@ from flask_socketio import SocketIO
 from app.api.fitbit import FitbitAPI
 from app.errors.handlers import FitbitAPIError, handle_fitbit_error
 from task_scheduler import TaskScheduler
-import json
 from Database.retrieve_database import fetch_hourly_steps, fetch_pc_usage_trends
 from log_activity import log_activity  
 from cached_data import CachedData
