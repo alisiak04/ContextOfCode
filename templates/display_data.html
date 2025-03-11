@@ -201,6 +201,11 @@
 
             if (!data) return;
 
+            if (data.display_name) {
+                console.log("Updating display name:", data.display_name);
+                $(".profile-name").text(data.display_name);
+            }
+            
             if (data.real_time_data && data.real_time_data.length > 0) {
                 $("#current-heart-rate").html(`${data.real_time_data[data.real_time_data.length - 1].value} ❤️`);
             }

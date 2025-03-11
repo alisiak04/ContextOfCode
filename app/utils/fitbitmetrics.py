@@ -1,36 +1,38 @@
+from datetime import datetime, timedelta
+
 def display_steps_data(steps_data):
-    """Process and return steps data from Fitbit API response"""
+    """Process and return steps data from Fitbit API response (only last 15 minutes)"""
     try:
-    
-        total_steps = 0
-        
-        # First try to get the total from activities-steps
-        if 'activities-steps' in steps_data and steps_data['activities-steps']:
-            total_steps = int(steps_data['activities-steps'][0]['value'])
-            print(f"Total steps from activities-steps: {total_steps}")
-            return [{'time': 'Today', 'value': total_steps}]
-        
-        # If no total, sum up the intraday data
-        elif 'activities-steps-intraday' in steps_data:
-            dataset = steps_data['activities-steps-intraday'].get('dataset', [])
-            total_steps = sum(entry['value'] for entry in dataset)
-            print(f"Total steps calculated from intraday data: {total_steps}")
-            return [{'time': 'Today', 'value': total_steps}]
-        
-        # Check for direct value
-        elif isinstance(steps_data, (int, str)):
-            total_steps = int(steps_data)
-            print(f"Total steps from direct value: {total_steps}")
-            return [{'time': 'Today', 'value': total_steps}]
-        
-        # If no steps data is found
-        print("No recognized steps data format found")
-        print("Available keys:", steps_data.keys() if isinstance(steps_data, dict) else "Not a dictionary")
-        return [{'time': 'Today', 'value': 0}]
-        
+        # Ensure the dataset exists
+        if 'activities-steps-intraday' not in steps_data:
+            print("⚠️ No intraday steps data found, falling back to daily total.")
+            return [{'time': 'Today', 'value': int(steps_data['activities-steps'][0]['value'])}] if 'activities-steps' in steps_data else [{'time': 'Today', 'value': 0}]
+
+        dataset = steps_data['activities-steps-intraday'].get('dataset', [])
+
+        if not dataset:
+            print("⚠️ No step data found in intraday dataset.")
+            return [{'time': 'Last 15 min', 'value': 0}]
+
+        # Get the current time and filter for last 15 minutes
+        now = datetime.now()
+        fifteen_minutes_ago = now - timedelta(minutes=15)
+
+        filtered_steps = [
+            entry for entry in dataset 
+            if datetime.strptime(entry['time'], "%H:%M:%S") >= fifteen_minutes_ago
+        ]
+
+        # Sum up steps for the last 15 minutes
+        total_steps_last_15 = sum(entry['value'] for entry in filtered_steps)
+
+        print(f"🟢 Total steps in last 15 minutes: {total_steps_last_15}")
+
+        return [{'time': 'Last 15 min', 'value': total_steps_last_15}]
+
     except Exception as e:
         print("\n=== Steps Data Error ===")
         print(f"Error type: {type(e)}")
         print(f"Error message: {str(e)}")
         print("Steps data structure:", steps_data)
-        return [{'time': 'Today', 'value': 0}] 
+        return [{'time': 'Last 15 min', 'value': 0}]
