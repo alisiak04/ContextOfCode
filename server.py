@@ -5,7 +5,7 @@ from app.errors.handlers import FitbitAPIError, handle_fitbit_error
 from task_scheduler import TaskScheduler
 from cache_update_manager import CacheUpdateManager
 from cached_data import CachedData
-from Database.retrieve_database import fetch_hourly_steps, fetch_work_life_balance_trends
+from Database.retrieve_database import fetch_hourly_steps, fetch_pc_usage_trends
 import json
 from log_activity import log_activity  
 
@@ -106,10 +106,9 @@ def hourly_steps():
     """Fetch hourly steps data."""
     return jsonify(fetch_hourly_steps())
 
-@app.route("/api/work_life_balance")
-def work_life_balance():
-    """Fetch screen time (CPU usage) vs. steps trends."""
-    return jsonify(fetch_work_life_balance_trends())
+@app.route('/api/pc_usage')
+def get_pc_usage():
+    return jsonify(fetch_pc_usage_trends())
 
 
 @app.route("/api/log_activity", methods=["POST"])
