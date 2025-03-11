@@ -41,7 +41,7 @@ class TaskScheduler:
 
             # Send data update via WebSockets
             self.socketio.emit("update_metrics", new_data)
-            print("✅ Data updated:", new_data)
+           
 
         except Exception as e:
             print(f"❌ Error fetching data: {e}")
