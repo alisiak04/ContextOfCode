@@ -1,6 +1,10 @@
 import sqlite3
+from app.utils.pcmetrics import get_pc_metrics
+from datetime import datetime
 
-DATABASE = "health_work_balance.db"
+
+
+DATABASE = "healthwork_balance.db"
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
@@ -23,24 +27,52 @@ def insert_user(display_name):
             print(f"⚠️ Display Name '{display_name}' was not inserted or found!")
             return None
         
-def insert_pc_metrics(user_id, cpu_usage, open_tabs):
+def insert_pc_metrics(user_id, cpu_usage, memory_usage, disk_usage, process_count):
+    """
+    Inserts PC metrics into the database.
+    """
+    metrics = get_pc_metrics()  # Fetch actual PC metrics
+
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("""
-            INSERT INTO PC_usage (user_id, cpu_usage, open_tabs) 
-            VALUES (?, ?, ?)
-        """, (user_id, cpu_usage, open_tabs))
-        conn.commit()
+            INSERT INTO PC_usage (user_id, cpu_usage, memory_usage, disk_usage, process_count) 
+            VALUES (?, ?, ?, ?, ?)
+        """, (user_id, 
+              float(metrics["cpu_usage"].replace("%", "")),  # Remove % and store as float
+              float(metrics["memory_usage"].replace("%", "")),  
+              float(metrics["disk_usage"].replace("%", "")),  
+              int(metrics["process_count"])))  
 
-def insert_steps_screen(user_id, steps, screen_time_minutes):
+        conn.commit()
+        
+
+def insert_steps(user_id, steps_data):
+    """
+    Inserts steps data into the StepScreen table.
+    :param user_id: User ID
+    :param steps_data: List of dictionaries with {'time': 'HH:MM:SS', 'steps': int}
+    """
+    if not steps_data:
+        print("⚠️ No step data available to insert.")
+        return
+
     with get_db_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO StepScreen (user_id, steps, screen_time) 
-            VALUES (?, ?, ?)
-        """, (user_id, steps, screen_time_minutes))
-        conn.commit()
 
+        for entry in steps_data:
+            # Convert time into full timestamp (YYYY-MM-DD HH:MM:SS)
+            now = datetime.now().date()
+            full_timestamp = f"{now} {entry['time']}"
+
+            cursor.execute("""
+                INSERT INTO StepScreen (user_id, timestamp, steps)
+                VALUES (?, ?, ?)
+            """, (user_id, full_timestamp, entry["steps"]))
+
+        conn.commit()
+        
+        
 def insert_real_time_heart_rate(user_id, real_time_hr_data):
     """Insert real-time heart rate data into the database."""
     if not real_time_hr_data:
@@ -83,16 +115,3 @@ def insert_resting_heart_rate(user_id, resting_heart_rate):
             VALUES (?, DATE('now'), ?)
         """, (user_id, resting_heart_rate))
         conn.commit()
-
-# def insert_burnout_metrics(user_id, total_stress_time, avg_heart_rate, date=None):
-#     with get_db_connection() as conn:
-#         cursor = conn.cursor()
-#         cursor.execute(
-#             "INSERT INTO BurnoutTrends (user_id, date, total_stress_time, avg_heart_rate) VALUES (?, ?, ?, ?)",
-#             (user_id, date or date_today(), total_stress_time, avg_heart_rate)
-#         )
-#         conn.commit()
-
-# # Helper function
-# def date_today():
-#     return sqlite3.connect(DATABASE).execute("SELECT DATE('now')").fetchone()[0]

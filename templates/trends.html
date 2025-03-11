@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trends - Health & Work Balance Dashboard</title>
+    
+    <!-- Include Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Link to CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <a href="/" class="navbar-title">Health & Work Balance Dashboard</a>
+        <div class="nav-links">
+            <a href="/data" class="nav-link">Live Dashboard</a>
+        </div>
+        
+        <div class="profile-section">
+            <div class="profile-icon">👤</div>
+            <div class="profile-name">
+                {% if profile_data and profile_data.user and profile_data.user.displayName %}
+                    {{ profile_data.user.displayName }}
+                {% else %}
+                    Guest User
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Page Content -->
+    <div class="container">
+        <div class="content">
+            <h1>Hourly Steps Trends</h1>
+            <div class="chart-container">
+                <canvas id="stepsChart"></canvas>
+            </div>
+        </div>
+        <div class="content">
+            <h1>Work-Life Balance Trends</h1>
+            <p>📊 This graph compares CPU usage vs. Steps per Hour.</p>
+            <div class="chart-container">
+                <canvas id="workLifeBalanceChart"></canvas>
+            </div>
+        </div>
+        <div class="form-card">
+            <h1>Log an Activity</h1>
+            <p> Is there any activity you want to log that you didnt wear your fitbit for?</p>
+            <!-- Activity Input Form -->
+            <form id="activityForm">
+                <label for="activityType">Activity Type:</label>
+                <select id="activityType" name="activityType" required>
+                    <option value="90013">Walking</option>
+                    <option value="90009">Running</option>
+                    <option value="20001">Cycling</option>
+                    <option value="30008">Swimming</option>
+                </select>
+
+                <label for="duration">Duration (Minutes):</label>
+                <input type="number" id="duration" name="duration" min="1" required>
+
+                <label for="startTime">Start Time:</label>
+                <input type="time" id="startTime" name="startTime" required>
+
+                <label for="date">Date:</label>
+                <input type="date" id="date" name="date" required>
+
+                <label for="calories">Calories Burned:</label>
+                <input type="number" id="calories" name="calories" min="1" required>
+
+                <label for="distance">Distance (KM):</label>
+                <input type="number" id="distance" name="distance" step="0.01" required>
+
+                <button type="submit" class="submit-btn">Log Activity</button>
+            </form>
+
+            <p id="responseMessage"></p>
+        </div>
+    </div>
+
+    <!-- JavaScript to Fetch and Display Data -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            console.log("✅ Trends page loaded, fetching step data...");
+            fetchHourlyStepsData();
+        });
+
+        async function fetchHourlyStepsData() {
+            try {
+                const response = await fetch('/api/hourly_steps');  
+                const data = await response.json();
+
+                console.log("📊 Fetched Hourly Steps Data:", data);
+
+                if (!data || !data.steps || data.steps.length === 0) {
+                    console.warn("⚠️ No step data available.");
+                    document.getElementById("stepsChart").outerHTML = "<p style='text-align:center; color:red;'>No step data available.</p>";
+                    return;
+                }
+
+                // Render Chart with fetched data
+                renderStepsChart(data.labels, data.steps);
+            } catch (error) {
+                console.error("❌ Error fetching hourly steps data:", error);
+            }
+        }
+
+        function renderStepsChart(labels, values) {
+            const ctx = document.getElementById("stepsChart").getContext("2d");
+
+            // Destroy existing chart if it exists to prevent overlapping issues
+            if (window.stepsChart instanceof Chart) {
+                console.log("🔄 Destroying previous chart...");
+                window.stepsChart.destroy();
+            }
+
+
+            // Create a new bar chart
+            window.stepsChart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: labels,  // Hour labels
+                    datasets: [{
+                        label: "Steps Per Hour",
+                        data: values,  // Step counts
+                        backgroundColor: "rgba(75, 192, 192, 0.6)",
+                        borderColor: "rgba(75, 192, 192, 1)",
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: { display: true, text: "Hour of the Day" },
+                            ticks: { autoSkip: false }
+                        },
+                        y: { 
+                            beginAtZero: true, 
+                            title: { display: true, text: "Step Count" },
+                            suggestedMax: Math.max(...values) + 50 // Ensures good scaling
+                        }
+                    }
+                }
+            });
+        }
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+            console.log("📊 Fetching Work-Life Balance Trends...");
+            fetchWorkLifeBalanceData();
+        });
+
+        async function fetchWorkLifeBalanceData() {
+            try {
+                const response = await fetch('/api/work_life_balance');  
+                const data = await response.json();
+
+                console.log("📊 Received Work-Life Balance Data:", data);
+
+                if (!data || !data.cpu_usage || !data.steps || data.labels.length === 0) {
+                    console.warn("⚠️ No work-life balance data available.");
+                    document.getElementById("workLifeBalanceChart").outerHTML = "<p style='text-align:center; color:red;'>No data available.</p>";
+                    return;
+                }
+
+                renderWorkLifeBalanceChart(data.labels, data.cpu_usage, data.steps);
+            } catch (error) {
+                console.error("❌ Error fetching work-life balance data:", error);
+            }
+        }
+
+        function renderWorkLifeBalanceChart(labels, cpuUsage, steps) {
+            const ctx = document.getElementById("workLifeBalanceChart").getContext("2d");
+
+            if (window.workLifeBalanceChart instanceof Chart) {
+                console.log("🔄 Destroying previous chart...");
+                window.workLifeBalanceChart.destroy();
+            }
+
+            window.workLifeBalanceChart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: labels,  // Hour labels
+                    datasets: [
+                        {
+                            label: "CPU Usage (%)",
+                            data: cpuUsage,
+                            backgroundColor: "rgba(255, 99, 132, 0.6)",
+                            borderColor: "rgba(255, 99, 132, 1)",
+                            borderWidth: 1,
+                            type: "line", // ✅ Line for CPU Usage
+                            yAxisID: "y1"
+                        },
+                        {
+                            label: "Steps Taken",
+                            data: steps,
+                            backgroundColor: "rgba(75, 192, 192, 0.6)",
+                            borderColor: "rgba(75, 192, 192, 1)",
+                            borderWidth: 1,
+                            yAxisID: "y2"
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y1: {
+                            type: "linear",
+                            position: "left",
+                            title: { display: true, text: "CPU Usage (%)" },
+                            beginAtZero: true
+                        },
+                        y2: {
+                            type: "linear",
+                            position: "right",
+                            title: { display: true, text: "Steps Taken" },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        document.getElementById("activityForm").addEventListener("submit", async function(event) {
+            event.preventDefault(); // Prevent form from reloading the page
+
+            const formData = {
+                activityId: document.getElementById("activityType").value,
+                duration: document.getElementById("duration").value,
+                startTime: document.getElementById("startTime").value,
+                date: document.getElementById("date").value,
+                calories: document.getElementById("calories").value,
+                distance: document.getElementById("distance").value
+            };
+
+            try {
+                const response = await fetch("/api/log_activity", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                document.getElementById("responseMessage").textContent = result.message;
+
+            } catch (error) {
+                document.getElementById("responseMessage").textContent = "Error logging activity.";
+            }
+        });
+
+    </script>
+
+</body>
+</html>

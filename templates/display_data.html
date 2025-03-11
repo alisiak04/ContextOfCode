@@ -10,12 +10,16 @@
     <!-- Include jQuery & Socket.IO -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.socket.io/4.0.1/socket.io.js"></script>
-    <link rel ="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
 
     <div class="navbar">
         <a href="/" class="navbar-title">Health & Work Balance Dashboard</a>
+        <div class="nav-links">
+            <a href="/trends" class="nav-link">Trends</a>
+        </div>
+        
         <div class="profile-section">
             <div class="profile-icon">👤</div>
             <div class="profile-name">
@@ -31,17 +35,20 @@
     <div class="container">
         <h1>Health & Work Balance Dashboard</h1>
 
+        <!-- Heart Rate Graph -->
+        <h2>Heart Rate (Last 8 Hours)</h2>
         <div class="metric-card">
-            <div class="metric-title">Heart Rate (Last 8 Hours)</div>
             <div class="chart-container">
                 <canvas id="heartRateChart"></canvas>
             </div>
         </div>
 
+        <!-- Fitbit Metrics Section -->
+        <h2>Fitbit Metrics</h2>
         <div class="grid">
-            <div class="metric-card-heartrate" >
+            <div class="metric-card-heartrate">
                 <div class="metric-title-heartrate">Current Heart Rate</div>
-                <div class="metric-value-heartrate "id="current-heart-rate">N/A ❤️</div>
+                <div class="metric-value-heartrate" id="current-heart-rate">N/A ❤️</div>
             </div>
 
             <div class="metric-card">
@@ -50,13 +57,17 @@
             </div>
 
             <div class="metric-card">
-                <div class="metric-title">Steps Today</div>
+                <div class="metric-title">Steps in the past 15 mins</div>
                 <div class="metric-value" id="steps-today">N/A 👣</div>
                 <div class="progress">
                     <div class="progress-bar" id="steps-progress" style="width: 0%; height: 10px;"></div>
                 </div>
             </div>
+        </div>
 
+        <!-- PC Metrics Section -->
+        <h2>PC Metrics</h2>
+        <div class="grid">
             <div class="metric-card">
                 <div class="metric-title">CPU Usage</div>
                 <div class="metric-value" id="cpu-usage">N/A</div>
@@ -93,12 +104,6 @@
             return hours * 60 + minutes; // Convert to minutes since midnight
         }
 
-        function formatTime(totalMinutes) {
-            const hours = Math.floor(totalMinutes / 60);
-            const minutes = totalMinutes % 60;
-            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-        }
-
         function updateHeartRateChart(realTimeData, restingHeartRate) {
             console.log("Processing heart rate data:", realTimeData);
 
@@ -111,13 +116,11 @@
             const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
             const eightHoursAgo = currentTimeInMinutes - (8 * 60);
 
-            // Filter data for last 8 hours
             const filteredData = realTimeData.filter(reading => {
                 const readingTime = parseTime(reading.time);
                 return readingTime >= eightHoursAgo && readingTime <= currentTimeInMinutes;
             });
 
-            // Organize data into 15-minute intervals
             const intervalData = [];
             let currentInterval = Math.floor(eightHoursAgo / 15) * 15;
 
@@ -130,11 +133,11 @@
                 if (intervalReadings.length > 0) {
                     const sum = intervalReadings.reduce((acc, reading) => acc + reading.value, 0);
                     intervalData.push({
-                        time: formatTime(currentInterval),
-                        value: Math.round(sum / intervalReadings.length) // Get average for interval
+                        time: currentInterval,
+                        value: Math.round(sum / intervalReadings.length)
                     });
                 } else {
-                    intervalData.push({ time: formatTime(currentInterval), value: null });
+                    intervalData.push({ time: currentInterval, value: null });
                 }
 
                 currentInterval += 15;
@@ -143,7 +146,7 @@
             const ctx = document.getElementById("heartRateChart").getContext("2d");
 
             if (heartRateChart) {
-                heartRateChart.destroy(); // Destroy previous chart before creating a new one
+                heartRateChart.destroy();
             }
 
             heartRateChart = new Chart(ctx, {
@@ -185,10 +188,6 @@
                             title: {
                                 display: true,
                                 text: "Time (15-min intervals)"
-                            },
-                            ticks: {
-                                autoSkip: true,
-                                maxTicksLimit: 16
                             }
                         }
                     }
@@ -202,12 +201,12 @@
             if (!data) return;
 
             if (data.display_name) {
-                console.log("Updating display name:", data.display_name);
                 $(".profile-name").text(data.display_name);
             }
             
             if (data.real_time_data && data.real_time_data.length > 0) {
                 $("#current-heart-rate").html(`${data.real_time_data[data.real_time_data.length - 1].value} ❤️`);
+                updateHeartRateChart(data.real_time_data, data.resting_heart_rate);
             }
 
             if (data.resting_heart_rate) {
@@ -215,10 +214,7 @@
             }
 
             if (data.steps_data && data.steps_data.length > 0) {
-                let stepsValue = data.steps_data[0].value;
-                $("#steps-today").text(`${stepsValue} 👣`);
-                let progress = Math.min(100, (stepsValue / 10000) * 100);
-                $("#steps-progress").css("width", `${progress}%`);
+                $("#steps-today").text(`${data.steps_data[data.steps_data.length - 1].steps} 👣`);
             }
 
             if (data.pc_metrics) {
@@ -227,9 +223,6 @@
                 $("#disk-usage").text(data.pc_metrics.disk_usage);
                 $("#process-count").text(`${data.pc_metrics.process_count} 🔄`);
                 $("#uptime-hours").text(`${data.pc_metrics.uptime_hours} hours ⏱️`);
-            }
-            if (data.real_time_data) {
-                updateHeartRateChart(data.real_time_data, data.resting_heart_rate);
             }
         });
     </script>

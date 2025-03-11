@@ -1,6 +1,6 @@
 import sqlite3
 
-DATABASE = "health_work_balance.db"
+DATABASE = "healthwork_balance.db"
 
 schema = """
 CREATE TABLE IF NOT EXISTS users (
@@ -29,7 +29,9 @@ CREATE TABLE IF NOT EXISTS PC_usage (
     user_id INTEGER,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     cpu_usage REAL NOT NULL,
-    open_tabs INTEGER NOT NULL,
+    memory_usage REAL NOT NULL,
+    disk_usage REAL NOT NULL,
+    process_count INTEGER NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -38,18 +40,9 @@ CREATE TABLE IF NOT EXISTS StepScreen (
     user_id INTEGER,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     steps INTEGER NOT NULL,
-    screen_time INTEGER NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS BurnoutTrends (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER,
-    date DATE NOT NULL,
-    total_stress_time INTEGER NOT NULL,
-    avg_heart_rate INTEGER NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
 """
 
 with sqlite3.connect(DATABASE) as conn:

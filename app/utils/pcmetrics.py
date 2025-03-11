@@ -29,9 +29,7 @@ def get_pc_metrics():
         
         # System uptime
         boot_time = datetime.fromtimestamp(psutil.boot_time())
-        uptime = datetime.now() - boot_time
-        uptime_hours = round(uptime.total_seconds() / 3600, 1)
-        print(f"System Uptime (hours): {uptime_hours}")
+        uptime_hours = round((datetime.now() - boot_time).total_seconds() / 3600, 1)
 
         return {
             'cpu_usage': f"{cpu_usage:.1f}%",

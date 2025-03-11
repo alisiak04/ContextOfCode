@@ -56,7 +56,7 @@ class CachedData:
         if access_token:
             print(f"🔑 Updating access token in cache: {access_token}")
             self.access_token = access_token  # Update token if provided
-        print(f"💾 Updating cache with new data: {data}") 
+        
         self.data = data
         self.active_update_start_time = 0
         self.last_updated = time.monotonic()
@@ -69,4 +69,5 @@ class CachedData:
     def get_token(self):
         """Retrieve cached access token."""
         assert self.lock.locked()
+        print(f"🔑 Fetching access token from cache... Current token: {self.access_token}")
         return self.access_token

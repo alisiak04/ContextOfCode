@@ -1,10 +1,13 @@
-from flask import Flask, request, redirect, render_template
+from flask import Flask, request, redirect, render_template, jsonify
 from flask_socketio import SocketIO, emit
 from app.api.fitbit import FitbitAPI
 from app.errors.handlers import FitbitAPIError, handle_fitbit_error
 from task_scheduler import TaskScheduler
 from cache_update_manager import CacheUpdateManager
 from cached_data import CachedData
+from Database.retrieve_database import fetch_hourly_steps, fetch_work_life_balance_trends
+import json
+from log_activity import log_activity  
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -73,6 +76,7 @@ def display_data():
                     else:
                         print("✅ No other updates in progress. Fetching new data...")
                         access_token = cached_data.get_token()
+                        print(f"🔑 Storing new access token: {access_token}")
                         if not access_token:
                             print("⚠️ No access token found, redirecting to login.")
                             return redirect("/")  # No token, re-authenticate
@@ -85,20 +89,54 @@ def display_data():
 
             else:
                 data_snapshot = cached_data.get_data()
-        print(f"Returning data: {data_snapshot}")
+
         return render_template("display_data.html", data=data_snapshot)
 
     except Exception as e:
         print(f"Error in fetching data: {e}") 
         return {"status": "error", "message": str(e)}, 500
+
+@app.route("/trends")
+def trends():
+    """Render the trends page."""
+    return render_template("trends.html")
+
+@app.route("/api/hourly_steps")
+def hourly_steps():
+    """Fetch hourly steps data."""
+    return jsonify(fetch_hourly_steps())
+
+@app.route("/api/work_life_balance")
+def work_life_balance():
+    """Fetch screen time (CPU usage) vs. steps trends."""
+    return jsonify(fetch_work_life_balance_trends())
+
+
+@app.route("/api/log_activity", methods=["POST"])
+def log_activity_endpoint():
+    """Endpoint to log user activity to Fitbit."""
+    print("🚀 Received request at /api/log_activity")  # ✅ Debugging
+    
+    data = request.json
+    print(f"📨 Request Data: {data}")  # ✅ Debugging
+
+    result, status = log_activity(data)  # ✅ Call imported function
+    print(f"📤 Response: {result}, Status: {status}")  # ✅  # ✅ Call imported function
+    return jsonify(result), status
+
 @socketio.on('connect')
-def handle_connect():
-    print('🔌 Client connected, pushing cached data...')
-    with cached_data:
-        if cached_data.data:
-            emit('update_metrics', cached_data.data)
-        else:
-            print("⚠️ No cached data available to send.")
+def handle_connect(auth):
+    print("🔌 Client connected, pushing cached data...")
+
+    if cached_data and cached_data.data:
+        try:
+            # Ensure JSON-serializable format
+            json_serializable_data = json.dumps(cached_data.data, default=lambda o: o.__dict__)
+            emit('update_metrics', json.loads(json_serializable_data))  # Convert back to dictionary
+        except Exception as e:
+            print(f"⚠️ JSON Serialization Error: {e}")
+    else:
+        print("⚠️ No cached data available to send.")
 
 if __name__ == "__main__":
     socketio.run(app, port=5001, debug=True, use_reloader=False)
