@@ -115,7 +115,7 @@ class FitbitAPI:
                 user_data["steps"] = None
             else:
                 response_json = steps_response.json()
-                print("🔍 Full Fitbit Steps Response:", response_json)  # 🔥 Log entire response
+                
 
                 user_data["steps"] = response_json 
                     

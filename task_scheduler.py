@@ -37,11 +37,9 @@ class TaskScheduler:
             intraday_steps = fitbit_user.steps.get("activities-steps-intraday", {}).get("dataset", [])
             if intraday_steps:
                 last_15_min_steps = intraday_steps[-1]["value"]  # Last recorded interval
-                print(f"✅ Extracted Steps in Last 15 Minutes: {last_15_min_steps}")
+                
             
-            # 🔥 Debug: Log extracted values
            
-            print(f"⏳ Steps in Last 15 Minutes: {last_15_min_steps}")
 
             # Store data
             new_data = {
@@ -57,7 +55,7 @@ class TaskScheduler:
             # Update shared data
             with self.shared_data["lock"]:
                 self.shared_data["data"] = new_data
-            print(f"📡 Emitting WebSocket Data: {json.dumps(new_data, indent=2)}")
+            
 
             # Send data update via WebSockets
             self.socketio.emit("update_metrics", new_data)

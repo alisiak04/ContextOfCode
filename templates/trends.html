@@ -20,16 +20,6 @@
             <a href="/data" class="nav-link">Live Dashboard</a>
         </div>
         
-        <div class="profile-section">
-            <div class="profile-icon">👤</div>
-            <div class="profile-name">
-                {% if profile_data and profile_data.user and profile_data.user.displayName %}
-                    {{ profile_data.user.displayName }}
-                {% else %}
-                    Guest User
-                {% endif %}
-            </div>
-        </div>
     </div>
 
     <!-- Page Content -->

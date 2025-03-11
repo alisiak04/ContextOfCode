@@ -11,3 +11,4 @@ class Config:
     STEPS_URL = "https://api.fitbit.com/1/user/-/activities/steps/date/today/1d/15min.json"
     REAL_TIME_HEART_RATE_URL = "https://api.fitbit.com/1/user/-/activities/heart/date/today/1d/1min.json"
     DISPLAY_NAME_URL = "https://api.fitbit.com/1/user/-/profile.json" 
+    LOG_ACTIVITY_URL = "https://api.fitbit.com/1/user/-/activities.json"

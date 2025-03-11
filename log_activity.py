@@ -1,5 +1,6 @@
 import requests
 from cached_data import CachedData
+from config.settings import Config
 
 # Get the singleton instance
 cached_data = CachedData()  # No need to specify cache_duration_seconds here
@@ -16,7 +17,7 @@ def log_activity(data):
             return {"message": "❌ No valid access token!"}, 401
 
         print(f"🔑 Using Access Token for Log Activity: {access_token}")
-        url = "https://api.fitbit.com/1/user/-/activities.json"
+        
         headers = {
             "Authorization": f"Bearer {access_token}",
             "Content-Type": "application/json"
@@ -32,7 +33,7 @@ def log_activity(data):
            
         }
 
-        response = requests.post(url, json=payload, headers=headers)
+        response = requests.post(Config.LOG_ACTIVITY_URL, json=payload, headers=headers)
 
         if response.status_code == 200:
             return {"message": "✅ Activity logged successfully!"}, 200
