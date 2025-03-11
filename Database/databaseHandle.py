@@ -108,10 +108,26 @@ def insert_real_time_heart_rate(user_id, real_time_hr_data):
         print(f"✅ Inserted {cursor.rowcount} real-time heart rate records for user {user_id}.")
 
 def insert_resting_heart_rate(user_id, resting_heart_rate):
+    """Insert resting heart rate into the database, avoiding duplicates for the same day."""
     with get_db_connection() as conn:
         cursor = conn.cursor()
+
+        # Check if an entry already exists for this user and today’s date
         cursor.execute("""
-            INSERT INTO RestHeartRate (user_id, date, resting_heart_rate)
-            VALUES (?, DATE('now'), ?)
-        """, (user_id, resting_heart_rate))
-        conn.commit()
+            SELECT COUNT(*) FROM RestHeartRate
+            WHERE user_id = ? AND date = DATE('now')
+        """, (user_id,))
+        
+        exists = cursor.fetchone()[0]
+
+        if exists == 0:
+            # Insert only if no entry exists for today
+            cursor.execute("""
+                INSERT INTO RestHeartRate (user_id, date, resting_heart_rate)
+                VALUES (?, DATE('now'), ?)
+            """, (user_id, resting_heart_rate))
+            conn.commit()
+            print(f"✅ Inserted resting heart rate for user {user_id} on today's date.")
+        else:
+            print(f"⚠️ Resting heart rate for user {user_id} already exists for today. Skipping insert.")
+
