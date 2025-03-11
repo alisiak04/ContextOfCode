@@ -48,17 +48,18 @@ def display_data():
     return render_template("display_data.html", data=latest_data)
 
 @socketio.on('connect')
-def handle_connect(sid):
+def handle_connect():  # Remove 'sid' parameter - SocketIO handles room assignment automatically
     """Send the latest metrics to the client on WebSocket connect."""
     if scheduler is None:
-        print("❌ Scheduler not initialized. Cannot send data.")
+        print("⚠️ Scheduler not initialized. Client might need to authenticate first.")
+        socketio.emit('auth_required', {"message": "Please log in with Fitbit first"})
         return
 
     with scheduler.shared_data["lock"]:
         current_data = scheduler.shared_data["data"].copy()
     
     print("📊 Sending current metrics on connect:", json.dumps(current_data, indent=2))
-    socketio.emit('update_metrics', current_data, room=sid)
+    socketio.emit('update_metrics', current_data)
 
 if __name__ == "__main__":
     socketio.run(app, port=5001, debug=True, use_reloader=False)

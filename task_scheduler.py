@@ -24,12 +24,14 @@ class TaskScheduler:
 
             # Extract latest heart rate
             latest_hr = fitbit_user.real_time_heart_rate_data[-1] if fitbit_user.real_time_heart_rate_data else "No Data"
+            heart_rate_history = fitbit_user.real_time_heart_rate_data or []
 
             # Store data
             new_data = {
                 "display_name": fitbit_user.profile.get("user", {}).get("displayName", "Unknown User"),
                 "resting_heart_rate": fitbit_user.resting_heart_rate,
                 "latest_heart_rate": latest_hr,
+                "heart_rate_history": heart_rate_history, 
                 "pc_metrics": pc_metrics,
             }
 
