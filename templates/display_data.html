@@ -58,7 +58,7 @@
 
             <div class="metric-card">
                 <div class="metric-title">Steps in the past 15 mins</div>
-                <div class="metric-value" id="steps-today">N/A 👣</div>
+                <div class="metric-value" id="steps-last-15-min">N/A 👣</div>
                 <div class="progress">
                     <div class="progress-bar" id="steps-progress" style="width: 0%; height: 10px;"></div>
                 </div>
@@ -240,10 +240,11 @@
             $("#resting-heart-rate").text(`${data.resting_heart_rate} bpm`);
         }
 
-        // ✅ Update steps
-        if (data.steps_data && data.steps_data.length > 0) {
-            $("#steps-today").text(`${data.steps_data[data.steps_data.length - 1].steps} 👣`);
+        
+        if (data.last_15_min_steps !== undefined) {
+            $("#steps-last-15-min").text(`${data.last_15_min_steps} 👟`);
         }
+
 
         // ✅ Update PC metrics
         if (data.pc_metrics) {
@@ -252,6 +253,7 @@
             $("#disk-usage").text(data.pc_metrics.disk_usage);
             $("#process-count").text(`${data.pc_metrics.process_count} 🔄`);
             $("#uptime-hours").text(`${data.pc_metrics.uptime_hours} hours ⏱️`);
+
         }
     });
     </script>

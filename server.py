@@ -88,7 +88,7 @@ def log_activity_endpoint():
         return jsonify({"message": "❌ Not authenticated. Please log in with Fitbit first!"}), 401
     
     data = request.json
-    print(f"📨 Request Data: {data}")
+    
     
     # Your log_activity function doesn't accept a token parameter, 
     # but it uses the cached_data singleton internally
@@ -109,7 +109,7 @@ def handle_connect():  # Remove 'sid' parameter - SocketIO handles room assignme
     with scheduler.shared_data["lock"]:
         current_data = scheduler.shared_data["data"].copy()
     
-    print("📊 Sending current metrics on connect:", json.dumps(current_data, indent=2))
+    
     socketio.emit('update_metrics', current_data)
 
 if __name__ == "__main__":

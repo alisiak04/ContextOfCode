@@ -114,7 +114,11 @@ class FitbitAPI:
                 print("⚠️ Warning: Steps data unavailable.")
                 user_data["steps"] = None
             else:
-                user_data["steps"] = steps_response.json()
+                response_json = steps_response.json()
+                print("🔍 Full Fitbit Steps Response:", response_json)  # 🔥 Log entire response
+
+                user_data["steps"] = response_json 
+                    
 
         except requests.exceptions.RequestException as e:
             print(f"⚠️ Steps request failed: {e}")
