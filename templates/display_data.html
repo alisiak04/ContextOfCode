@@ -98,10 +98,22 @@
     <script>
         var socket = io();
         var heartRateChart;
+        
+        function formatTimeLabel(minutes) {
+            let hours = Math.floor(minutes / 60);
+            let mins = minutes % 60;
+            return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+        }
+
 
         function parseTime(timeStr) {
-            const [hours, minutes] = timeStr.split(':').map(Number);
-            return hours * 60 + minutes; // Convert to minutes since midnight
+            const parts = timeStr.split(':').map(Number);
+            if (parts.length === 2) { // HH:MM format
+                return parts[0] * 60 + parts[1];
+            } else if (parts.length === 3) { // HH:MM:SS format
+                return parts[0] * 60 + parts[1];
+            }
+            return null;
         }
 
         function updateHeartRateChart(realTimeData, restingHeartRate) {
@@ -152,7 +164,7 @@
             heartRateChart = new Chart(ctx, {
                 type: "line",
                 data: {
-                    labels: intervalData.map(d => d.time),
+                    labels: intervalData.map(d => formatTimeLabel(d.time)),
                     datasets: [
                         {
                             label: "Heart Rate (15min avg)",
