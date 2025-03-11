@@ -12,7 +12,7 @@ from log_activity import log_activity
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# Thread-safe cache
+# Get singleton instance of CachedData
 cached_data = CachedData(cache_duration_seconds=300)
 scheduler = None  # Background scheduler reference
 
@@ -49,11 +49,8 @@ def callback():
 
         initial_data = FitbitAPI.get_user_data(access_token)
 
-
         with cached_data:
             cached_data.update(initial_data)  # Update cache with initial data
-
-
 
         return redirect("/data")
 
@@ -85,7 +82,8 @@ def display_data():
                         data_snapshot = FitbitAPI.get_user_data(access_token)
 
                 if data_snapshot:
-                    cached_data.update(data_snapshot)
+                    with cached_data:  # Re-acquire lock to update
+                        cached_data.update(data_snapshot)
 
             else:
                 data_snapshot = cached_data.get_data()
@@ -110,27 +108,29 @@ def hourly_steps():
 def get_pc_usage():
     return jsonify(fetch_pc_usage_trends())
 
-
 @app.route("/api/log_activity", methods=["POST"])
 def log_activity_endpoint():
     """Endpoint to log user activity to Fitbit."""
-    print("🚀 Received request at /api/log_activity")  # ✅ Debugging
+    print("🚀 Received request at /api/log_activity")
     
     data = request.json
-    print(f"📨 Request Data: {data}")  # ✅ Debugging
+    print(f"📨 Request Data: {data}")
 
-    result, status = log_activity(data)  # ✅ Call imported function
-    print(f"📤 Response: {result}, Status: {status}")  # ✅  # ✅ Call imported function
+    result, status = log_activity(data)  # Using the imported function with singleton
+    print(f"📤 Response: {result}, Status: {status}")
     return jsonify(result), status
 
 @socketio.on('connect')
 def handle_connect(auth):
     print("🔌 Client connected, pushing cached data...")
 
-    if cached_data and cached_data.data:
+    with cached_data:  # Get lock before accessing data
+        current_data = cached_data.get_data()
+        
+    if current_data:
         try:
             # Ensure JSON-serializable format
-            json_serializable_data = json.dumps(cached_data.data, default=lambda o: o.__dict__)
+            json_serializable_data = json.dumps(current_data, default=lambda o: o.__dict__)
             emit('update_metrics', json.loads(json_serializable_data))  # Convert back to dictionary
         except Exception as e:
             print(f"⚠️ JSON Serialization Error: {e}")

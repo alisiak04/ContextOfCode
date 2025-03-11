@@ -19,7 +19,9 @@ class CacheUpdateManager:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.cached_data.lock.acquire()
-        self.cached_data.active_update_start_time = 0
+        # Only reset active_update_start_time if we started the update
+        if not self.update_already_started:
+            self.cached_data.active_update_start_time = 0
 
     def update_started_elsewhere(self) -> bool:
         """Check if another thread is already updating."""

@@ -3,15 +3,26 @@ import logging
 from threading import Lock
 
 class CachedData:
+    _instance = None
     _logger = logging.getLogger(__name__)
-
+    
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(CachedData, cls).__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
+    
     def __init__(self, cache_duration_seconds: int = 300):
+        if getattr(self, '_initialized', False):
+            return
+            
         self.data = None  # Stores Fitbit data
         self.access_token = None  # Stores Fitbit access token
         self.cache_duration_seconds = cache_duration_seconds
         self.last_updated = time.monotonic() - self.cache_duration_seconds  # Force initial update
         self.active_update_start_time = 0
         self.lock = Lock()
+        self._initialized = True
 
     def __enter__(self):
         """Thread-safe entry point."""

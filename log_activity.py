@@ -1,7 +1,8 @@
 import requests
 from cached_data import CachedData
 
-cached_data = CachedData(cache_duration_seconds=300)  # Ensures stored access token
+# Get the singleton instance
+cached_data = CachedData()  # No need to specify cache_duration_seconds here
 
 def log_activity(data):
     """Logs an activity to Fitbit using user input."""
@@ -28,13 +29,13 @@ def log_activity(data):
             "date": data["date"],
             "manualCalories": int(data["calories"]),
             "distance": float(data["distance"]),
-            "distanceUnit": "km"
+           
         }
 
         response = requests.post(url, json=payload, headers=headers)
 
-        if response.status_code == 201:
-            return {"message": "✅ Activity logged successfully!"}, 201
+        if response.status_code == 200:
+            return {"message": "✅ Activity logged successfully!"}, 200
         else:
             return {"message": f"❌ Error: {response.text}"}, response.status_code
 

@@ -68,18 +68,21 @@ class TaskScheduler:
                     insert_steps(user_id, steps_list)
 
                 # Update shared data
-                with self.shared_data.lock:
-                    self.shared_data.update({
-                        "display_name": display_name,  # ✅ Store only the display name
-                        "resting_heart_rate": fitbit_user.resting_heart_rate,
-                        "heart_rate_zones": fitbit_user.heart_rate_zones,
-                        "real_time_data": fitbit_user.real_time_heart_rate_data,
-                        "steps_data": steps_list,
-                        "pc_metrics": pc_metrics,
-                    })
+                data_to_store = {
+                    "display_name": display_name,
+                    "resting_heart_rate": fitbit_user.resting_heart_rate,
+                    "heart_rate_zones": fitbit_user.heart_rate_zones,
+                    "real_time_data": fitbit_user.real_time_heart_rate_data,
+                    "steps_data": steps_list,
+                    "pc_metrics": pc_metrics,
+                }
+                
+                with self.shared_data:
+                    # Use the shared instance's update method
+                    self.shared_data.update(data_to_store)
 
                 # Push update to frontend via WebSockets
-                self.socketio.emit("update_metrics", self.shared_data.data)
+                self.socketio.emit("update_metrics", data_to_store)
                 print(f"✅ Pushed new data to frontend")
 
             except Exception as e:
